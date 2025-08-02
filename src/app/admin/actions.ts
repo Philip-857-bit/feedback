@@ -1,7 +1,6 @@
 
 "use server";
 
-import * as fs from 'fs';
 import asBlob from 'html-to-docx';
 
 type Feedback = {
@@ -78,13 +77,13 @@ export async function exportToWord(feedback: Feedback[]): Promise<string | null>
     `;
 
     try {
-      const docxBlob = await asBlob(htmlString, {
+      const fileBuffer = await asBlob(htmlString, {
         orientation: 'landscape',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        return: 'buffer'
       });
   
-      // Convert Blob to Buffer, then to Base64
-      const buffer = Buffer.from(await docxBlob.arrayBuffer());
-      return buffer.toString('base64');
+      return (fileBuffer as Buffer).toString('base64');
     } catch (error) {
       console.error("Error generating Word document:", error);
       return null;
