@@ -3,7 +3,7 @@
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { saveAs } from 'file-saver';
-import { asBlob } from 'html-to-docx';
+import { exportToWord } from "@/app/admin/actions";
 import {
   Table,
   TableBody,
@@ -107,60 +107,19 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     link.click();
     document.body.removeChild(link);
   };
-
-  const exportToWord = async () => {
-    let htmlString = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Feedback Submissions</title>
-          <style>
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid black; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-          </style>
-        </head>
-        <body>
-          <h1>Feedback Submissions</h1>
-          <table>
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Rating</th>
-                <th>Feedback</th>
-                <th>Consent</th>
-                <th>Submitted</th>
-              </tr>
-            </thead>
-            <tbody>
-    `;
-    feedback.forEach(item => {
-      htmlString += `
-        <tr>
-          <td>
-            ${item.is_anonymous ? 'Anonymous' : item.name}<br/>
-            <small>${item.email}</small><br/>
-            <small>(${item.user_type})</small>
-          </td>
-          <td>${item.rating ? '⭐'.repeat(item.rating) : 'N/A'}</td>
-          <td>${item.feedback}</td>
-          <td>${item.consent ? 'Yes' : 'No'}</td>
-          <td>${formatDate(item.created_at)}</td>
-        </tr>
-      `;
-    });
-    htmlString += `
-            </tbody>
-          </table>
-        </body>
-      </html>
-    `;
-
-    const docxBlob = await asBlob(htmlString, {
-        orientation: 'landscape',
-    });
-
-    saveAs(docxBlob, 'feedback-submissions.docx');
+  
+  const handleExportToWord = async () => {
+    const docxBase64 = await exportToWord(feedback);
+    if (docxBase64) {
+      const byteCharacters = atob(docxBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      saveAs(blob, 'feedback-submissions.docx');
+    }
   };
 
   return (
@@ -183,7 +142,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
                     <FileType className="mr-2 h-4 w-4" />
                     <span>Export to CSV</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={exportToWord}>
+                <DropdownMenuItem onClick={handleExportToWord}>
                     <FileText className="mr-2 h-4 w-4" />
                     <span>Export to Word</span>
                 </DropdownMenuItem>
