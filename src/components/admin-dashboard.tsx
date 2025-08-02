@@ -2,6 +2,8 @@
 
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { saveAs } from 'file-saver';
+import { asBlob } from 'html-to-docx';
 import {
   Table,
   TableBody,
@@ -10,10 +12,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Download, XCircle } from "lucide-react";
+import { CheckCircle, Download, FileDown, FileText, FileType, ChevronDown } from "lucide-react";
 
 type Feedback = {
   id: string;
@@ -76,13 +84,111 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     doc.save("feedback-submissions.pdf");
   };
 
+  const exportToCSV = () => {
+    const headers = ["ID", "Name", "Email", "User Type", "Rating", "Feedback", "Consent", "Anonymous", "Submitted At"];
+    const rows = feedback.map(item => [
+      item.id,
+      item.is_anonymous ? "Anonymous" : `"${item.name}"`,
+      item.email,
+      item.user_type,
+      item.rating ?? 'N/A',
+      `"${item.feedback.replace(/"/g, '""')}"`,
+      item.consent,
+      item.is_anonymous,
+      formatDate(item.created_at)
+    ].join(','));
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "feedback-submissions.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToWord = async () => {
+    let htmlString = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Feedback Submissions</title>
+          <style>
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid black; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+          </style>
+        </head>
+        <body>
+          <h1>Feedback Submissions</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Rating</th>
+                <th>Feedback</th>
+                <th>Consent</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    feedback.forEach(item => {
+      htmlString += `
+        <tr>
+          <td>
+            ${item.is_anonymous ? 'Anonymous' : item.name}<br/>
+            <small>${item.email}</small><br/>
+            <small>(${item.user_type})</small>
+          </td>
+          <td>${item.rating ? '⭐'.repeat(item.rating) : 'N/A'}</td>
+          <td>${item.feedback}</td>
+          <td>${item.consent ? 'Yes' : 'No'}</td>
+          <td>${formatDate(item.created_at)}</td>
+        </tr>
+      `;
+    });
+    htmlString += `
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const docxBlob = await asBlob(htmlString, {
+        orientation: 'landscape',
+    });
+
+    saveAs(docxBlob, 'feedback-submissions.docx');
+  };
+
   return (
     <div className="space-y-4">
        <div className="flex justify-end">
-        <Button onClick={exportToPDF} variant="outline">
-          <Download className="mr-2 h-4 w-4" />
-          Export to PDF
-        </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Export Data
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuItem onClick={exportToPDF}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Export to PDF</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToCSV}>
+                    <FileType className="mr-2 h-4 w-4" />
+                    <span>Export to CSV</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToWord}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Export to Word</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <div className="border rounded-lg w-full">
         <Table>
@@ -156,3 +262,5 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     </div>
   );
 }
+
+    
