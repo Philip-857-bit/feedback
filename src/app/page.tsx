@@ -8,14 +8,14 @@ export default function Home() {
         <header className="text-center space-y-4 animate-fade-in-up">
           <div className="inline-flex items-center gap-4 justify-center">
             <Music className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
-            <p className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground font-headline">
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground font-headline">
               DeExclusives Music Organization
-            </p>
+            </h1>
             <FlaskConical className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
           </div>
-          <h1 className="text-lg text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Music and Science Conference Festival 2025
-          </h1>
+          </p>
           <h2 className="text-3xl font-semibold tracking-tight text-foreground font-headline">
             Event Feedback
           </h2>
