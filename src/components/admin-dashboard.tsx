@@ -1,3 +1,4 @@
+
 "use client";
 
 import jsPDF from "jspdf";
@@ -111,14 +112,12 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
   const handleExportToWord = async () => {
     const docxBase64 = await exportToWord(feedback);
     if (docxBase64) {
-      const byteCharacters = atob(docxBase64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
-      saveAs(blob, 'feedback-submissions.docx');
+      const dataUri = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${docxBase64}`;
+      fetch(dataUri)
+        .then(res => res.blob())
+        .then(blob => {
+          saveAs(blob, 'feedback-submissions.docx');
+        });
     }
   };
 
