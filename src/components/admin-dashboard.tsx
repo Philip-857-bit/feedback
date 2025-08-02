@@ -63,19 +63,6 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     });
   };
 
-  const handleExportToWord = async () => {
-    try {
-      const base64String = await exportToWord(feedback);
-      if (base64String) {
-        const dataUri = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${base64String}`;
-        const blob = await (await fetch(dataUri)).blob();
-        saveAs(blob, 'feedback-submissions.docx');
-      }
-    } catch (error) {
-      console.error("Error exporting to Word:", error);
-    }
-  };
-
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.text("Feedback Submissions", 20, 10);
@@ -141,7 +128,9 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
       return [];
     }
     const photoUrls = Array.isArray(item.photo_url) ? item.photo_url : [item.photo_url];
-    return photoUrls.map(url => ({ ...item, photo_url: url }));
+    return photoUrls
+      .filter(url => typeof url === 'string' && url.trim() !== '')
+      .map(url => ({ ...item, photo_url: url }));
   });
 
   return (
