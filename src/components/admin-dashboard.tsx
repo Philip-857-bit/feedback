@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState } from "react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import {
@@ -12,17 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -40,11 +28,8 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Download, FileType, ChevronDown, XCircle, Image as ImageIcon, Trash2, Loader2 } from "lucide-react";
+import { CheckCircle, Download, FileType, ChevronDown, XCircle, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
-import { deleteFeedback } from "@/app/admin/actions";
-import { useToast } from "@/hooks/use-toast";
-
 
 type Feedback = {
   id: string;
@@ -64,30 +49,6 @@ type AdminDashboardProps = {
 };
 
 export function AdminDashboard({ feedback }: AdminDashboardProps) {
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  const handleDelete = async (feedbackId: string) => {
-    setIsDeleting(feedbackId);
-    try {
-      const result = await deleteFeedback(feedbackId);
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      toast({
-        title: "Success!",
-        description: "Feedback entry has been deleted.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Deletion Failed",
-        description: error.message || "An unexpected error occurred.",
-      });
-    } finally {
-      setIsDeleting(null);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
@@ -224,8 +185,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
               <TableHead>Rating</TableHead>
               <TableHead>Feedback</TableHead>
               <TableHead>Consent</TableHead>
-              <TableHead>Submitted</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">Submitted</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -280,33 +240,6 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground text-xs">
                   {formatDate(item.created_at)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" disabled={isDeleting === item.id}>
-                         {isDeleting === item.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the feedback entry from the server.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(item.id)}>
-                          Continue
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}

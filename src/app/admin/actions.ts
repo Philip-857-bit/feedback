@@ -4,7 +4,6 @@
 import * as fs from 'fs';
 import { default as htmlToDocx } from 'html-to-docx';
 import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
 
 type Feedback = {
   id: string;
@@ -30,24 +29,6 @@ const formatDate = (dateString: string) => {
       minute: "2-digit",
     });
 };
-
-export async function deleteFeedback(feedbackId: string) {
-  const supabase = createClient();
-  
-  const { error } = await supabase
-    .from('feedback')
-    .delete()
-    .eq('id', feedbackId);
-
-  if (error) {
-    console.error('Supabase deletion error:', error.message);
-    return { error: `Database error: ${error.message}` };
-  }
-  
-  revalidatePath('/admin');
-  
-  return { error: null };
-}
 
 export async function exportToWord(feedback: Feedback[]) {
   const feedbackHtml = feedback.map(item => {
