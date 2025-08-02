@@ -13,9 +13,9 @@ export default function Home() {
             </p>
             <FlaskConical className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
           </div>
-          <p className="text-lg text-muted-foreground">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground font-headline">
             Music and Science Conference Festival 2025
-          </p>
+          </h1>
           <h2 className="text-3xl font-semibold tracking-tight text-foreground font-headline">
             Event Feedback
           </h2>
