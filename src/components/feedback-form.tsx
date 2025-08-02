@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -78,14 +79,15 @@ export function FeedbackForm() {
       anonymous: false,
       email: "",
       rating: 0,
-      feedback: "",
       photo: undefined,
+      feedback: "",
       consent: false,
     },
   });
 
   const { watch, setValue, trigger } = form;
   const isAnonymous = watch("anonymous");
+  const photoRef = form.register("photo");
   
   async function uploadPhoto(photo: File) {
     const fileExt = photo.name.split(".").pop();
@@ -189,7 +191,7 @@ export function FeedbackForm() {
               name="userType"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel className="font-semibold">I am an... *</FormLabel>
+                  <FormLabel className="font-semibold">I am a... *</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -318,46 +320,40 @@ export function FeedbackForm() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="photo"
-              render={({ field: { onChange, ...rest }}) => (
-                <FormItem>
-                  <FormLabel>Upload a Photo (Optional)</FormLabel>
-                  <FormControl>
-                    <Label htmlFor="photo-upload" className="relative block w-full cursor-pointer rounded-lg border-2 border-dashed border-border p-6 text-center hover:border-primary transition-colors">
-                      <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                        <ImageIcon className="h-10 w-10"/>
-                        {fileName ? (
-                          <div className="flex items-center gap-2 text-foreground">
-                            <FileText className="h-4 w-4" />
-                            <span className="font-medium">{fileName}</span>
-                          </div>
-                        ) : (
-                          <p>Click or drag to upload an image</p>
-                        )}
-                        <span className="text-xs">PNG, JPG, GIF up to 10MB</span>
+            <FormItem>
+              <FormLabel>Upload a Photo (Optional)</FormLabel>
+              <FormControl>
+                <Label htmlFor="photo-upload" className="relative block w-full cursor-pointer rounded-lg border-2 border-dashed border-border p-6 text-center hover:border-primary transition-colors">
+                  <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                    <ImageIcon className="h-10 w-10"/>
+                    {fileName ? (
+                      <div className="flex items-center gap-2 text-foreground">
+                        <FileText className="h-4 w-4" />
+                        <span className="font-medium">{fileName}</span>
                       </div>
-                      <Input
-                        id="photo-upload"
-                        type="file"
-                        className="sr-only"
-                        accept="image/png, image/jpeg, image/gif"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            onChange(e.target.files);
-                            setFileName(file.name);
-                          }
-                        }}
-                        {...rest}
-                      />
-                    </Label>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    ) : (
+                      <p>Click or drag to upload an image</p>
+                    )}
+                    <span className="text-xs">PNG, JPG, GIF up to 10MB</span>
+                  </div>
+                  <Input
+                    {...photoRef}
+                    id="photo-upload"
+                    type="file"
+                    className="sr-only"
+                    accept="image/png, image/jpeg, image/gif"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setFileName(file.name);
+                        form.setValue("photo", e.target.files);
+                      }
+                    }}
+                  />
+                </Label>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
 
             <FormField
               control={form.control}

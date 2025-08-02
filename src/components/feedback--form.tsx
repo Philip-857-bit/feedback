@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -78,8 +79,8 @@ export function FeedbackForm() {
       anonymous: false,
       email: "",
       rating: 0,
-      feedback: "",
       photo: undefined,
+      feedback: "",
       consent: false,
     },
   });
