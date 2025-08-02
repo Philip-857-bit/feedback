@@ -3,8 +3,6 @@
 
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { saveAs } from 'file-saver';
-import { exportToWord } from "@/app/admin/actions";
 import {
   Table,
   TableBody,
@@ -19,10 +17,19 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Download, FileDown, FileText, FileType, ChevronDown, XCircle } from "lucide-react";
+import { CheckCircle, Download, FileType, ChevronDown, XCircle, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 type Feedback = {
   id: string;
@@ -113,41 +120,28 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     document.body.removeChild(link);
   };
   
-  const handleExportToWord = async () => {
-    const docxBase64 = await exportToWord(feedback);
-    if (docxBase64) {
-      const dataUri = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${docxBase64}`;
-      fetch(dataUri)
-        .then(res => res.blob())
-        .then(blob => {
-          saveAs(blob, 'feedback-submissions.docx');
-        });
-    }
-  };
+  const photos = feedback.filter(item => item.photo_url);
 
   return (
-    <div className="space-y-4">
-       <div className="flex justify-end">
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold font-headline">Feedback Entries</h2>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="outline">
-                    <FileDown className="mr-2 h-4 w-4" />
+                    <Download className="mr-2 h-4 w-4" />
                     Export Data
                     <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
                 <DropdownMenuItem onClick={exportToPDF}>
-                    <FileText className="mr-2 h-4 w-4" />
+                    <ImageIcon className="mr-2 h-4 w-4" />
                     <span>Export to PDF</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={exportToCSV}>
                     <FileType className="mr-2 h-4 w-4" />
                     <span>Export to CSV</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportToWord}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    <span>Export to Word</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -220,6 +214,51 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold font-headline mb-4">Photo Gallery</h2>
+        {photos.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {photos.map((item) => (
+              <Dialog key={`gallery-${item.id}`}>
+                <DialogTrigger asChild>
+                   <Card className="overflow-hidden cursor-pointer group">
+                      <CardContent className="p-0">
+                        <Image
+                          src={item.photo_url!}
+                          alt={item.name ?? "Feedback photo"}
+                          width={400}
+                          height={400}
+                          className="aspect-square object-cover w-full group-hover:scale-105 transition-transform duration-200"
+                        />
+                      </CardContent>
+                      {!item.is_anonymous && (
+                        <CardFooter className="p-2 text-xs">
+                          <p className="truncate">{item.name}</p>
+                        </CardFooter>
+                      )}
+                    </Card>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>{item.is_anonymous ? 'Anonymous' : item.name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="relative w-full aspect-video">
+                    <Image
+                      src={item.photo_url!}
+                      alt={item.name ?? "Feedback photo"}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">No photos have been submitted yet.</p>
+        )}
       </div>
     </div>
   );
