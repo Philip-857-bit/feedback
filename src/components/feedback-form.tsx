@@ -110,14 +110,23 @@ export function FeedbackForm() {
       const result = await submitFeedback(formData);
 
       if (result.error) {
-        throw new Error(result.error);
+        // Special handling for duplicate email error
+        if (result.error.includes("already exists")) {
+          toast({
+            variant: "destructive",
+            title: "Submission Failed",
+            description: result.error,
+          });
+        } else {
+          throw new Error(result.error);
+        }
+      } else {
+        setIsSuccess(true);
+        toast({
+          title: "Success!",
+          description: "Your feedback has been submitted.",
+        });
       }
-
-      setIsSuccess(true);
-      toast({
-        title: "Success!",
-        description: "Your feedback has been submitted.",
-      });
 
     } catch (error: any) {
       console.error("Submission error:", error);
