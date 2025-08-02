@@ -3,7 +3,6 @@
 
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { saveAs } from 'file-saver';
 import {
   Table,
   TableBody,
@@ -71,7 +70,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
         `${item.is_anonymous ? "Anonymous" : item.name}\n${item.email}\n(${item.user_type})`,
         item.rating ? '⭐'.repeat(item.rating) : 'N/A',
         item.feedback,
-        item.photo_url && item.photo_url.length > 0 ? item.photo_url.join(', ') : 'N/A',
+        item.photo_url && item.photo_url.length > 0 ? Array.isArray(item.photo_url) ? item.photo_url.join(', ') : item.photo_url : 'N/A',
         item.consent ? 'Yes' : 'No',
         formatDate(item.created_at)
       ]),
@@ -99,18 +98,21 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
 
   const exportToCSV = () => {
     const headers = ["ID", "Name", "Email", "User Type", "Rating", "Feedback", "Photo URL", "Consent", "Anonymous", "Submitted At"];
-    const rows = feedback.map(item => [
-      item.id,
-      item.is_anonymous ? "Anonymous" : `"${item.name}"`,
-      item.email,
-      item.user_type,
-      item.rating ?? 'N/A',
-      `"${item.feedback.replace(/"/g, '""')}"`,
-      item.photo_url && item.photo_url.length > 0 ? `"${item.photo_url.join(',')}"` : '',
-      item.consent,
-      item.is_anonymous,
-      formatDate(item.created_at)
-    ].join(','));
+    const rows = feedback.map(item => {
+      const photoUrls = Array.isArray(item.photo_url) ? item.photo_url.join(',') : item.photo_url;
+      return [
+        item.id,
+        item.is_anonymous ? "Anonymous" : `"${item.name}"`,
+        item.email,
+        item.user_type,
+        item.rating ?? 'N/A',
+        `"${item.feedback.replace(/"/g, '""')}"`,
+        photoUrls ? `"${photoUrls}"` : '',
+        item.consent,
+        item.is_anonymous,
+        formatDate(item.created_at)
+      ].join(',');
+    });
 
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
     const encodedUri = encodeURI(csvContent);
@@ -126,7 +128,28 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     if (!item.photo_url) {
       return [];
     }
-    const urls = Array.isArray(item.photo_url) ? item.photo_url : [item.photo_url];
+    
+    let urls: string[] = [];
+    try {
+      // Check if photo_url is a string that looks like a JSON array
+      if (typeof item.photo_url === 'string' && item.photo_url.startsWith('[') && item.photo_url.endsWith(']')) {
+        urls = JSON.parse(item.photo_url);
+      } else if (Array.isArray(item.photo_url)) {
+        urls = item.photo_url;
+      } else if (typeof item.photo_url === 'string') {
+        // Handle the case where it might be a single URL string
+        urls = [item.photo_url];
+      }
+    } catch (e) {
+      console.error("Failed to parse photo_url:", item.photo_url, e);
+      return []; // Skip this item if parsing fails
+    }
+
+    // Ensure we have an array before mapping
+    if (!Array.isArray(urls)) {
+        return [];
+    }
+
     return urls
       .filter(url => typeof url === 'string' && url.trim() !== '')
       .map(url => ({ ...item, photo_url_single: url }));
