@@ -2,6 +2,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import nodemailer from "nodemailer";
 
 async function uploadPhoto(photo: File) {
   const supabase = createClient();
@@ -21,6 +22,43 @@ async function uploadPhoto(photo: File) {
     .getPublicUrl(fileName);
 
   return publicUrl;
+}
+
+async function sendConfirmationEmail(userEmail: string, name: string | null, isAnonymous: boolean) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.MAIL_USER,
+    to: userEmail,
+    subject: "Thank You for Your Feedback! | DeExclusives Music & Science Conference Festival",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Thank You For Your Feedback!</h2>
+        <p>Dear ${isAnonymous ? 'Guest' : name},</p>
+        <p>We've successfully received your feedback for the Music and Science Conference Festival 2025. We truly appreciate you taking the time to share your thoughts with us.</p>
+        <p>Your input is invaluable in helping us make next year's event even more spectacular.</p>
+        <p>Stay tuned for updates and highlights from this year's conference!</p>
+        <br>
+        <p>Best regards,</p>
+        <p><strong>The DeExclusives Music Organization Team</strong></p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Confirmation email sent to:", userEmail);
+  } catch (error) {
+    console.error("Error sending confirmation email:", error);
+    // We don't want to block the user's feedback submission if the email fails,
+    // so we'll just log the error and continue.
+  }
 }
 
 export async function submitFeedback(formData: FormData) {
@@ -87,6 +125,11 @@ export async function submitFeedback(formData: FormData) {
   if (error) {
     console.error("Submission error:", error);
     return { error: error.message || "An unexpected error occurred. Please try again." };
+  }
+
+  // Send confirmation email
+  if (rawFormData.email) {
+    await sendConfirmationEmail(rawFormData.email, rawFormData.name as string | null, rawFormData.anonymous);
   }
 
   return { error: null };
