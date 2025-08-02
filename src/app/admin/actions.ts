@@ -32,26 +32,20 @@ const formatDate = (dateString: string) => {
 };
 
 export async function deleteFeedback(feedbackId: string) {
-  console.log("--- Deleting Feedback (Database Record Only) ---");
-  console.log("Received feedbackId:", feedbackId);
-
   const supabase = createClient();
   
-  // Delete the feedback record from the database
-  const { error: dbError } = await supabase
+  const { error } = await supabase
     .from('feedback')
     .delete()
     .eq('id', feedbackId);
 
-  if (dbError) {
-    console.error('Error deleting feedback from database:', dbError);
-    return { error: 'Failed to delete feedback record.' };
+  if (error) {
+    console.error('Supabase deletion error:', error.message);
+    return { error: `Database error: ${error.message}` };
   }
   
-  // Revalidate the path to refresh the data on the admin page
   revalidatePath('/admin');
   
-  console.log("--- DB Deletion Successful ---");
   return { error: null };
 }
 
