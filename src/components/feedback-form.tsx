@@ -81,6 +81,7 @@ export function FeedbackForm() {
       rating: 0,
       feedback: "",
       consent: false,
+      photo: undefined,
     },
   });
 
@@ -89,7 +90,7 @@ export function FeedbackForm() {
   
   async function uploadPhoto(photo: File) {
     const fileExt = photo.name.split(".").pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const fileName = `${Date.now()}.${fileExt}`;
     const { data, error } = await supabase.storage
       .from("feedback-photos")
       .upload(fileName, photo);
@@ -321,7 +322,7 @@ export function FeedbackForm() {
             <FormField
               control={form.control}
               name="photo"
-              render={({ field: { onChange, ...rest } }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Upload a Photo (Optional)</FormLabel>
                   <FormControl>
@@ -348,7 +349,7 @@ export function FeedbackForm() {
                           if (file) {
                             setFileName(file.name);
                           }
-                          onChange(e.target.files);
+                          field.onChange(e.target.files);
                         }}
                       />
                     </Label>
@@ -398,3 +399,5 @@ export function FeedbackForm() {
     </Card>
   );
 }
+
+    
