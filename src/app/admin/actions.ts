@@ -31,7 +31,7 @@ const formatDate = (dateString: string) => {
     });
 };
 
-export async function deleteFeedback(feedbackId: string, photoUrls: any | null) {
+export async function deleteFeedback(feedbackId: string) {
   console.log("--- Deleting Feedback (Database Record Only) ---");
   console.log("Received feedbackId:", feedbackId);
 

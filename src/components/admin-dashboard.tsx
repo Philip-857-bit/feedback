@@ -67,10 +67,10 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleDelete = async (feedbackId: string, photoUrls: string[] | null) => {
+  const handleDelete = async (feedbackId: string) => {
     setIsDeleting(feedbackId);
     try {
-      const result = await deleteFeedback(feedbackId, photoUrls);
+      const result = await deleteFeedback(feedbackId);
       if (result.error) {
         throw new Error(result.error);
       }
@@ -296,12 +296,12 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the feedback entry and any associated photos from the server.
+                          This action cannot be undone. This will permanently delete the feedback entry from the server.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(item.id, item.photo_url)}>
+                        <AlertDialogAction onClick={() => handleDelete(item.id)}>
                           Continue
                         </AlertDialogAction>
                       </AlertDialogFooter>
