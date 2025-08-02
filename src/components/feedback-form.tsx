@@ -36,6 +36,7 @@ import {
   PartyPopper,
   Loader2,
   FileText,
+  MessageCircle,
 } from "lucide-react";
 
 const formSchema = z.object({
@@ -96,9 +97,17 @@ export function FeedbackForm() {
           <PartyPopper className="h-16 w-16 text-primary mb-4" />
           <CardTitle className="text-3xl font-bold font-headline">Thank You!</CardTitle>
           <CardDescription className="text-lg mt-2">
-            Your feedback has been submitted. We appreciate you!
+            Your feedback has been submitted. We appreciate you! Stay connected and get the latest updates by joining our community.
           </CardDescription>
         </CardHeader>
+        <CardFooter className="flex-col gap-4 px-8 pb-8">
+          <Button asChild className="w-full">
+            <a href="https://chat.whatsapp.com/CsuHgAXGJ8eAtRdPGmLZ5S" target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Join our Community
+            </a>
+          </Button>
+        </CardFooter>
       </Card>
     );
   }
