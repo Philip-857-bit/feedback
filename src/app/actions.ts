@@ -30,12 +30,31 @@ export async function submitFeedback(formData: FormData) {
     userType: formData.get('userType'),
     name: formData.get('name'),
     anonymous: formData.get('anonymous') === 'true',
-    email: formData.get('email'),
+    email: formData.get('email') as string,
     rating: formData.get('rating') ? Number(formData.get('rating')) : null,
     feedback: formData.get('feedback'),
     photos: formData.getAll('photo') as File[],
     consent: formData.get('consent') === 'true',
   };
+
+  // Check if email already exists
+  if (rawFormData.email && !rawFormData.anonymous) {
+    const { data: existingFeedback, error: selectError } = await supabase
+      .from('feedback')
+      .select('id')
+      .eq('email', rawFormData.email)
+      .single();
+
+    if (selectError && selectError.code !== 'PGRST116') { // PGRST116: no rows found
+      console.error("Error checking for existing email:", selectError);
+      return { error: "An error occurred while checking for duplicates." };
+    }
+
+    if (existingFeedback) {
+      return { error: "A feedback entry with this email address already exists." };
+    }
+  }
+
 
   let photoUrls: string[] = [];
   if (rawFormData.photos && rawFormData.photos.length > 0) {
