@@ -29,7 +29,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Download, FileType, ChevronDown, XCircle, Image as ImageIcon, FileText as FileTextIcon } from "lucide-react";
+import { CheckCircle, Download, FileType, ChevronDown, XCircle, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import { exportToWord } from "@/app/admin/actions";
 
@@ -136,7 +136,13 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     document.body.removeChild(link);
   };
   
-  const photos = feedback.flatMap(item => (item.photo_url ? item.photo_url.map(url => ({...item, photo_url: url})) : []));
+  const photos = feedback.flatMap(item => {
+    if (!item.photo_url) {
+      return [];
+    }
+    const photoUrls = Array.isArray(item.photo_url) ? item.photo_url : [item.photo_url];
+    return photoUrls.map(url => ({ ...item, photo_url: url }));
+  });
 
   return (
     <div className="space-y-8">
@@ -179,7 +185,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      {item.photo_url && item.photo_url.length > 0 && <AvatarImage src={item.photo_url[0]} alt={item.name ?? 'User'} />}
+                      {item.photo_url && item.photo_url.length > 0 && <AvatarImage src={Array.isArray(item.photo_url) ? item.photo_url[0] : item.photo_url} alt={item.name ?? 'User'} />}
                       <AvatarFallback>{item.name ? item.name.charAt(0).toUpperCase() : 'A'}</AvatarFallback>
                     </Avatar>
                     <div>
