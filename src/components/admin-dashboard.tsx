@@ -31,7 +31,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Download, FileType, ChevronDown, XCircle, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
-import { exportToWord } from "@/app/admin/actions";
 
 
 type Feedback = {
@@ -125,12 +124,11 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
   
   const photos = feedback
     .filter(item => item.photo_url && Array.isArray(item.photo_url) && item.photo_url.length > 0)
-    .flatMap(item => {
-      const photoUrls = Array.isArray(item.photo_url) ? item.photo_url : [item.photo_url];
-      return photoUrls
+    .flatMap(item => 
+      item.photo_url!
         .filter(url => typeof url === 'string' && url.trim() !== '')
-        .map(url => ({ ...item, photo_url_single: url }));
-    });
+        .map(url => ({ ...item, photo_url_single: url }))
+    );
 
 
   return (
