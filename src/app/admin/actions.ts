@@ -2,7 +2,7 @@
 "use server";
 
 import * as fs from 'fs';
-import { asBlob } from 'html-to-docx';
+import asBlob from 'html-to-docx';
 
 type Feedback = {
   id: string;
