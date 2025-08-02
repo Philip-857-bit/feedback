@@ -9,7 +9,7 @@ export default function Home() {
           <div className="inline-flex items-center gap-4 justify-center">
             <Music className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
             <p className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground font-headline">
-              DeExclusives
+              DeExclusives Music Organization
             </p>
             <FlaskConical className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
           </div>
