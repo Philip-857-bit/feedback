@@ -30,7 +30,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { StarRating } from "@/components/star-rating";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@/lib/supabase/client";
+import { submitFeedback } from "@/app/actions";
 import {
   User,
   Store,
@@ -53,7 +53,7 @@ const formSchema = z.object({
   feedback: z.string().min(10, {
     message: "Feedback must be at least 10 characters.",
   }),
-  photo: z.custom<FileList>().optional(),
+  photo: z.any().optional(),
   consent: z.boolean().refine((val) => val === true, {
     message: "You must consent to our terms to submit feedback.",
   }),
@@ -69,7 +69,6 @@ export function FeedbackForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [fileName, setFileName] = useState("");
   const { toast } = useToast();
-  const supabase = createClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -84,54 +83,27 @@ export function FeedbackForm() {
       photo: undefined,
     },
   });
-
-  const { watch, setValue, trigger } = form;
-  const isAnonymous = watch("anonymous");
   
-  async function uploadPhoto(photo: File) {
-    const fileExt = photo.name.split(".").pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const { data, error } = await supabase.storage
-      .from("feedback-photos")
-      .upload(fileName, photo);
-
-    if (error) {
-      console.error("Error uploading photo:", error);
-      return null;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from("feedback-photos")
-      .getPublicUrl(fileName);
-
-    return publicUrl;
-  }
+  const { watch, setValue, trigger, register } = form;
+  const isAnonymous = watch("anonymous");
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    let photoUrl: string | null = null;
+
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      if (key === 'photo' && value instanceof FileList && value.length > 0) {
+        formData.append(key, value[0]);
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
 
     try {
-      if (values.photo && values.photo.length > 0) {
-        photoUrl = await uploadPhoto(values.photo[0]);
-        if (!photoUrl) {
-           throw new Error("Photo upload failed.");
-        }
-      }
+      const result = await submitFeedback(formData);
 
-      const { error } = await supabase.from("feedback").insert({
-        user_type: values.userType,
-        name: values.anonymous ? "Anonymous" : values.name,
-        is_anonymous: values.anonymous,
-        email: values.email,
-        rating: values.rating,
-        feedback: values.feedback,
-        photo_url: photoUrl,
-        consent: values.consent,
-      });
-
-      if (error) {
-        throw error;
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       setIsSuccess(true);
@@ -322,7 +294,7 @@ export function FeedbackForm() {
             <FormField
               control={form.control}
               name="photo"
-              render={({ field }) => (
+              render={({ field: { onChange, ...rest } }) => (
                 <FormItem>
                   <FormLabel>Upload a Photo (Optional)</FormLabel>
                   <FormControl>
@@ -344,12 +316,16 @@ export function FeedbackForm() {
                         type="file"
                         className="sr-only"
                         accept="image/png, image/jpeg, image/gif"
+                        {...register("photo")}
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
                             setFileName(file.name);
+                            onChange(e.target.files);
+                          } else {
+                            setFileName("");
+                            onChange(null);
                           }
-                          field.onChange(e.target.files);
                         }}
                       />
                     </Label>
@@ -399,5 +375,3 @@ export function FeedbackForm() {
     </Card>
   );
 }
-
-    
