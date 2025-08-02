@@ -31,23 +31,52 @@ const formatDate = (dateString: string) => {
     });
 };
 
-export async function deleteFeedback(feedbackId: string, photoUrls: string[] | null) {
+export async function deleteFeedback(feedbackId: string, photoUrls: any | null) {
   const supabase = createClient();
 
-  // 1. Delete photos from storage if they exist
-  if (photoUrls && photoUrls.length > 0) {
-    const fileNames = photoUrls.map(url => {
-        const parts = url.split('/');
-        return parts[parts.length - 1];
-    });
-    
-    const { error: storageError } = await supabase.storage
-      .from('feedback-photos')
-      .remove(fileNames);
+  let urlsToDelete: string[] = [];
 
-    if (storageError) {
-      console.error('Error deleting photos from storage:', storageError);
-      return { error: 'Failed to delete associated photos.' };
+  if (photoUrls) {
+    if (typeof photoUrls === 'string') {
+      try {
+        // Attempt to parse if it's a JSON string array
+        const parsed = JSON.parse(photoUrls);
+        if (Array.isArray(parsed)) {
+          urlsToDelete = parsed;
+        } else {
+          // It's just a single URL string
+          urlsToDelete.push(photoUrls);
+        }
+      } catch (e) {
+        // It's not a JSON string, treat as a single URL
+        urlsToDelete.push(photoUrls);
+      }
+    } else if (Array.isArray(photoUrls)) {
+      urlsToDelete = photoUrls;
+    }
+  }
+
+
+  // 1. Delete photos from storage if they exist
+  if (urlsToDelete.length > 0) {
+    const fileNames = urlsToDelete.map(url => {
+        // Defensive check for valid URL strings before splitting
+        if (typeof url === 'string' && url.includes('/')) {
+          const parts = url.split('/');
+          return parts[parts.length - 1];
+        }
+        return null;
+    }).filter((name): name is string => name !== null);
+    
+    if (fileNames.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from('feedback-photos')
+        .remove(fileNames);
+
+      if (storageError) {
+        console.error('Error deleting photos from storage:', storageError);
+        return { error: 'Failed to delete associated photos.' };
+      }
     }
   }
   
