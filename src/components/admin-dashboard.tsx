@@ -124,14 +124,13 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
   };
   
   const photos = feedback
+    .filter(item => item.photo_url && Array.isArray(item.photo_url) && item.photo_url.length > 0)
     .flatMap(item => {
-      if (!item.photo_url) {
-        return [];
-      }
       const photoUrls = Array.isArray(item.photo_url) ? item.photo_url : [item.photo_url];
-      return photoUrls.map(url => ({ ...item, photo_url_single: url }));
-    })
-    .filter(item => typeof item.photo_url_single === 'string' && item.photo_url_single.trim() !== '');
+      return photoUrls
+        .filter(url => typeof url === 'string' && url.trim() !== '')
+        .map(url => ({ ...item, photo_url_single: url }));
+    });
 
 
   return (
@@ -275,5 +274,3 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     </div>
   );
 }
-
-    
