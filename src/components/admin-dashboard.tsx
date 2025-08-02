@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Download, FileDown, FileText, FileType, ChevronDown } from "lucide-react";
+import { CheckCircle, Download, FileDown, FileText, FileType, ChevronDown, XCircle } from "lucide-react";
 
 type Feedback = {
   id: string;
@@ -262,5 +262,3 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     </div>
   );
 }
-
-    
