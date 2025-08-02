@@ -79,7 +79,6 @@ export function FeedbackForm() {
       anonymous: false,
       email: "",
       rating: 0,
-      photo: undefined,
       feedback: "",
       consent: false,
     },
@@ -340,7 +339,6 @@ export function FeedbackForm() {
                         <span className="text-xs">PNG, JPG, GIF up to 10MB</span>
                       </div>
                       <Input
-                        {...rest}
                         id="photo-upload"
                         type="file"
                         className="sr-only"
@@ -349,8 +347,8 @@ export function FeedbackForm() {
                           const file = e.target.files?.[0];
                           if (file) {
                             setFileName(file.name);
-                            onChange(e.target.files);
                           }
+                          onChange(e.target.files);
                         }}
                       />
                     </Label>
