@@ -42,15 +42,14 @@ export async function submitFeedback(formData: FormData) {
     const { data: existingFeedback, error: selectError } = await supabase
       .from('feedback')
       .select('id')
-      .eq('email', rawFormData.email)
-      .single();
+      .eq('email', rawFormData.email);
 
-    if (selectError && selectError.code !== 'PGRST116') { // PGRST116: no rows found
+    if (selectError) {
       console.error("Error checking for existing email:", selectError);
       return { error: "An error occurred while checking for duplicates." };
     }
 
-    if (existingFeedback) {
+    if (existingFeedback && existingFeedback.length > 0) {
       return { error: "A feedback entry with this email address already exists." };
     }
   }
