@@ -33,20 +33,25 @@ export async function submitFeedback(formData: FormData) {
     email: formData.get('email'),
     rating: formData.get('rating') ? Number(formData.get('rating')) : null,
     feedback: formData.get('feedback'),
-    photo: formData.get('photo') as File | null,
+    photos: formData.getAll('photo') as File[],
     consent: formData.get('consent') === 'true',
   };
 
-  let photoUrl: string | null = null;
-  if (rawFormData.photo && rawFormData.photo.size > 0) {
-    try {
-      photoUrl = await uploadPhoto(rawFormData.photo);
-      if (!photoUrl) {
-        return { error: "Photo upload failed." };
+  let photoUrls: string[] = [];
+  if (rawFormData.photos && rawFormData.photos.length > 0) {
+    const uploadPromises = rawFormData.photos.map(photo => {
+      if (photo.size > 0) {
+        return uploadPhoto(photo);
       }
+      return Promise.resolve(null);
+    });
+
+    try {
+      const results = await Promise.all(uploadPromises);
+      photoUrls = results.filter((url): url is string => url !== null);
     } catch (error: any) {
       console.error("Photo upload error:", error);
-      return { error: "Failed to process photo." };
+      return { error: "Failed to process photos." };
     }
   }
 
@@ -57,7 +62,7 @@ export async function submitFeedback(formData: FormData) {
     email: rawFormData.email,
     rating: rawFormData.rating,
     feedback: rawFormData.feedback,
-    photo_url: photoUrl,
+    photo_url: photoUrls.length > 0 ? photoUrls : null,
     consent: rawFormData.consent,
   });
 

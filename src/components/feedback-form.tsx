@@ -67,7 +67,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function FeedbackForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [fileName, setFileName] = useState("");
+  const [fileNames, setFileNames] = useState<string[]>([]);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -91,10 +91,17 @@ export function FeedbackForm() {
     setIsSubmitting(true);
 
     const formData = new FormData();
+    // Use `getAll` for photos
+    const photos = values.photo;
+    if (photos && photos.length > 0) {
+      for (let i = 0; i < photos.length; i++) {
+        formData.append('photo', photos[i]);
+      }
+    }
+
+    // Append other fields
     Object.entries(values).forEach(([key, value]) => {
-      if (key === 'photo' && value instanceof FileList && value.length > 0) {
-        formData.append(key, value[0]);
-      } else if (value !== undefined && value !== null) {
+      if (key !== 'photo' && value !== undefined && value !== null) {
         formData.append(key, String(value));
       }
     });
@@ -296,34 +303,36 @@ export function FeedbackForm() {
               name="photo"
               render={({ field: { onChange, ...rest } }) => (
                 <FormItem>
-                  <FormLabel>Upload a Photo (Optional)</FormLabel>
+                  <FormLabel>Upload Photos (Optional)</FormLabel>
                   <FormControl>
                     <Label htmlFor="photo-upload" className="relative block w-full cursor-pointer rounded-lg border-2 border-dashed border-border p-6 text-center hover:border-primary transition-colors">
                       <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
                         <ImageIcon className="h-10 w-10"/>
-                        {fileName ? (
-                          <div className="flex items-center gap-2 text-foreground">
+                        {fileNames.length > 0 ? (
+                          <div className="flex flex-col items-center gap-2 text-foreground">
                             <FileText className="h-4 w-4" />
-                            <span className="font-medium">{fileName}</span>
+                            {fileNames.map(name => <span key={name} className="font-medium text-xs">{name}</span>)}
                           </div>
                         ) : (
-                          <p>Click or drag to upload an image</p>
+                          <p>Click or drag to upload images</p>
                         )}
                         <span className="text-xs">PNG, JPG, GIF up to 10MB</span>
                       </div>
                       <Input
                         id="photo-upload"
                         type="file"
+                        multiple
                         className="sr-only"
                         accept="image/png, image/jpeg, image/gif"
                         {...register("photo")}
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setFileName(file.name);
-                            onChange(e.target.files);
+                          const files = e.target.files;
+                          if (files && files.length > 0) {
+                            const names = Array.from(files).map(file => file.name);
+                            setFileNames(names);
+                            onChange(files);
                           } else {
-                            setFileName("");
+                            setFileNames([]);
                             onChange(null);
                           }
                         }}

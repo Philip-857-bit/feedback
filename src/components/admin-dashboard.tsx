@@ -3,6 +3,7 @@
 
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { saveAs } from 'file-saver';
 import {
   Table,
   TableBody,
@@ -28,8 +29,10 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Download, FileType, ChevronDown, XCircle, Image as ImageIcon } from "lucide-react";
+import { CheckCircle, Download, FileType, ChevronDown, XCircle, Image as ImageIcon, FileText as FileTextIcon } from "lucide-react";
 import Image from "next/image";
+import { exportToWord } from "@/app/admin/actions";
+
 
 type Feedback = {
   id: string;
@@ -39,7 +42,7 @@ type Feedback = {
   email: string;
   rating: number | null;
   feedback: string;
-  photo_url: string | null;
+  photo_url: string[] | null;
   consent: boolean;
   is_anonymous: boolean;
 };
@@ -60,6 +63,19 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     });
   };
 
+  const handleExportToWord = async () => {
+    try {
+      const base64String = await exportToWord(feedback);
+      if (base64String) {
+        const dataUri = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${base64String}`;
+        const blob = await (await fetch(dataUri)).blob();
+        saveAs(blob, 'feedback-submissions.docx');
+      }
+    } catch (error) {
+      console.error("Error exporting to Word:", error);
+    }
+  };
+
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.text("Feedback Submissions", 20, 10);
@@ -69,7 +85,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
         `${item.is_anonymous ? "Anonymous" : item.name}\n${item.email}\n(${item.user_type})`,
         item.rating ? '⭐'.repeat(item.rating) : 'N/A',
         item.feedback,
-        item.photo_url || 'N/A',
+        item.photo_url && item.photo_url.length > 0 ? item.photo_url.join(', ') : 'N/A',
         item.consent ? 'Yes' : 'No',
         formatDate(item.created_at)
       ]),
@@ -104,7 +120,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
       item.user_type,
       item.rating ?? 'N/A',
       `"${item.feedback.replace(/"/g, '""')}"`,
-      item.photo_url || '',
+      item.photo_url && item.photo_url.length > 0 ? `"${item.photo_url.join(',')}"` : '',
       item.consent,
       item.is_anonymous,
       formatDate(item.created_at)
@@ -120,7 +136,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     document.body.removeChild(link);
   };
   
-  const photos = feedback.filter(item => item.photo_url);
+  const photos = feedback.flatMap(item => (item.photo_url ? item.photo_url.map(url => ({...item, photo_url: url})) : []));
 
   return (
     <div className="space-y-8">
@@ -163,7 +179,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      {item.photo_url && <AvatarImage src={item.photo_url} alt={item.name ?? 'User'} />}
+                      {item.photo_url && item.photo_url.length > 0 && <AvatarImage src={item.photo_url[0]} alt={item.name ?? 'User'} />}
                       <AvatarFallback>{item.name ? item.name.charAt(0).toUpperCase() : 'A'}</AvatarFallback>
                     </Avatar>
                     <div>
@@ -220,8 +236,8 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
         <h2 className="text-2xl font-bold font-headline mb-4">Photo Gallery</h2>
         {photos.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {photos.map((item) => (
-              <Dialog key={`gallery-${item.id}`}>
+            {photos.map((item, index) => (
+              <Dialog key={`${item.id}-gallery-${index}`}>
                 <DialogTrigger asChild>
                    <Card className="overflow-hidden cursor-pointer group">
                       <CardContent className="p-0">
