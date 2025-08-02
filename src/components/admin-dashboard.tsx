@@ -130,7 +130,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     const photoUrls = Array.isArray(item.photo_url) ? item.photo_url : [item.photo_url];
     return photoUrls
       .filter(url => typeof url === 'string' && url.trim() !== '')
-      .map(url => ({ ...item, photo_url: url }));
+      .map(url => ({ ...item, photo_url_single: url }));
   });
 
   return (
@@ -237,7 +237,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
                    <Card className="overflow-hidden cursor-pointer group">
                       <CardContent className="p-0">
                         <Image
-                          src={item.photo_url!}
+                          src={item.photo_url_single!}
                           alt={item.name ?? "Feedback photo"}
                           width={400}
                           height={400}
@@ -257,7 +257,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
                   </DialogHeader>
                   <div className="relative w-full aspect-video">
                     <Image
-                      src={item.photo_url!}
+                      src={item.photo_url_single!}
                       alt={item.name ?? "Feedback photo"}
                       fill
                       className="object-contain"
