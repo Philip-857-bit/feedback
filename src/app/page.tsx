@@ -3,30 +3,30 @@ import { Music, FlaskConical } from 'lucide-react';
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen w-full flex-col items-center bg-background py-12 px-4 sm:px-8">
-      <div className="w-full max-w-2xl space-y-8">
+    <main className="flex min-h-screen w-full flex-col items-center bg-background py-8 sm:py-12 px-4 sm:px-8">
+      <div className="w-full max-w-2xl space-y-6 sm:space-y-8">
         <header className="text-center space-y-4 animate-fade-in-up">
-          <div className="inline-flex items-center gap-4 justify-center">
-            <Music className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-            <p className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-headline">
+          <div className="inline-flex items-center gap-2 sm:gap-4 justify-center">
+            <Music className="h-6 w-6 text-primary" />
+            <p className="text-base sm:text-lg font-bold tracking-tight text-foreground font-headline">
               DeExclusives Music Organization
             </p>
-            <FlaskConical className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+            <FlaskConical className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground font-headline">
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground font-headline">
             Music and Science Conference Festival 2025
           </h1>
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground font-headline">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground font-headline">
             Event Feedback
           </h2>
-          <p className="text-md text-muted-foreground max-w-xl mx-auto">
+          <p className="text-sm sm:text-md text-muted-foreground max-w-xl mx-auto">
             We value your feedback! Please let us know about your experience to help us make next year's event even better.
           </p>
         </header>
 
         <FeedbackForm />
 
-        <footer className="text-center text-sm text-muted-foreground pt-4">
+        <footer className="text-center text-xs sm:text-sm text-muted-foreground pt-4">
           © {new Date().getFullYear()} DeExclusives Music Organization. All Rights Reserved.
         </footer>
       </div>
