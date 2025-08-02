@@ -29,7 +29,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { StarRating } from "@/components/star-rating";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import {
   User,
   Store,
@@ -63,30 +63,12 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-async function uploadPhoto(photo: File) {
-  const fileExt = photo.name.split(".").pop();
-  const fileName = `${Math.random()}.${fileExt}`;
-  const { data, error } = await supabase.storage
-    .from("feedback-photos")
-    .upload(fileName, photo);
-
-  if (error) {
-    console.error("Error uploading photo:", error);
-    return null;
-  }
-
-  const { data: { publicUrl } } = supabase.storage
-    .from("feedback-photos")
-    .getPublicUrl(data.path);
-
-  return publicUrl;
-}
-
 export function FeedbackForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [fileName, setFileName] = useState("");
   const { toast } = useToast();
+  const supabase = createClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -103,6 +85,25 @@ export function FeedbackForm() {
 
   const { watch, setValue, trigger } = form;
   const isAnonymous = watch("anonymous");
+  
+  async function uploadPhoto(photo: File) {
+    const fileExt = photo.name.split(".").pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const { data, error } = await supabase.storage
+      .from("feedback-photos")
+      .upload(fileName, photo);
+
+    if (error) {
+      console.error("Error uploading photo:", error);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from("feedback-photos")
+      .getPublicUrl(data.path);
+
+    return publicUrl;
+  }
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
@@ -160,7 +161,7 @@ export function FeedbackForm() {
           </CardDescription>
         </CardHeader>
         <CardFooter className="flex-col gap-4 px-8 pb-8">
-          <Button asChild className="w-full">
+           <Button asChild className="w-full">
             <a href="https://chat.whatsapp.com/CsuHgAXGJ8eAtRdPGmLZ5S" target="_blank" rel="noopener noreferrer">
               <MessageCircle className="mr-2 h-4 w-4" />
               Join our Community

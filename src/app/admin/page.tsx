@@ -1,8 +1,9 @@
 import { AdminDashboard } from '@/components/admin-dashboard';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 import { Database } from 'lucide-react';
 
 async function getFeedback() {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('feedback')
     .select('*')
