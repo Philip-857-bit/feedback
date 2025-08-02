@@ -8,9 +8,9 @@ export default function Home() {
         <header className="text-center space-y-4 animate-fade-in-up">
           <div className="inline-flex items-center gap-4 justify-center">
             <Music className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground font-headline">
+            <p className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-headline">
               DeExclusives Music Organization
-            </h1>
+            </p>
             <FlaskConical className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
           </div>
           <p className="text-lg text-muted-foreground">
