@@ -32,6 +32,11 @@ const formatDate = (dateString: string) => {
 };
 
 export async function deleteFeedback(feedbackId: string, photoUrls: any | null) {
+  console.log("--- Deleting Feedback ---");
+  console.log("Received feedbackId:", feedbackId);
+  console.log("Received photoUrls (raw):", photoUrls);
+  console.log("Type of photoUrls:", typeof photoUrls);
+
   const supabase = createClient();
 
   let urlsToDelete: string[] = [];
@@ -39,16 +44,13 @@ export async function deleteFeedback(feedbackId: string, photoUrls: any | null) 
   if (photoUrls) {
     if (typeof photoUrls === 'string') {
       try {
-        // Attempt to parse if it's a JSON string array
         const parsed = JSON.parse(photoUrls);
         if (Array.isArray(parsed)) {
           urlsToDelete = parsed;
         } else {
-          // It's just a single URL string
           urlsToDelete.push(photoUrls);
         }
       } catch (e) {
-        // It's not a JSON string, treat as a single URL
         urlsToDelete.push(photoUrls);
       }
     } else if (Array.isArray(photoUrls)) {
@@ -56,11 +58,9 @@ export async function deleteFeedback(feedbackId: string, photoUrls: any | null) 
     }
   }
 
-
   // 1. Delete photos from storage if they exist
   if (urlsToDelete.length > 0) {
     const fileNames = urlsToDelete.map(url => {
-        // Defensive check for valid URL strings before splitting
         if (typeof url === 'string' && url.includes('/')) {
           const parts = url.split('/');
           return parts[parts.length - 1];
@@ -68,6 +68,8 @@ export async function deleteFeedback(feedbackId: string, photoUrls: any | null) 
         return null;
     }).filter((name): name is string => name !== null);
     
+    console.log("Extracted fileNames to delete:", fileNames);
+
     if (fileNames.length > 0) {
       const { error: storageError } = await supabase.storage
         .from('feedback-photos')
@@ -94,6 +96,7 @@ export async function deleteFeedback(feedbackId: string, photoUrls: any | null) 
   // 3. Revalidate the path to refresh the data on the admin page
   revalidatePath('/admin');
   
+  console.log("--- Deletion Successful ---");
   return { error: null };
 }
 
