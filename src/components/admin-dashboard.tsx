@@ -122,13 +122,15 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     document.body.removeChild(link);
   };
   
-  const photos = feedback
-    .filter(item => item.photo_url && Array.isArray(item.photo_url) && item.photo_url.length > 0)
-    .flatMap(item => 
-      item.photo_url!
-        .filter(url => typeof url === 'string' && url.trim() !== '')
-        .map(url => ({ ...item, photo_url_single: url }))
-    );
+  const photos = feedback.flatMap(item => {
+    if (!item.photo_url) {
+      return [];
+    }
+    const urls = Array.isArray(item.photo_url) ? item.photo_url : [item.photo_url];
+    return urls
+      .filter(url => typeof url === 'string' && url.trim() !== '')
+      .map(url => ({ ...item, photo_url_single: url }));
+  });
 
 
   return (
