@@ -3,6 +3,8 @@
 
 import * as fs from 'fs';
 import { default as htmlToDocx } from 'html-to-docx';
+import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 
 type Feedback = {
   id: string;
@@ -28,6 +30,43 @@ const formatDate = (dateString: string) => {
       minute: "2-digit",
     });
 };
+
+export async function deleteFeedback(feedbackId: string, photoUrls: string[] | null) {
+  const supabase = createClient();
+
+  // 1. Delete photos from storage if they exist
+  if (photoUrls && photoUrls.length > 0) {
+    const fileNames = photoUrls.map(url => {
+        const parts = url.split('/');
+        return parts[parts.length - 1];
+    });
+    
+    const { error: storageError } = await supabase.storage
+      .from('feedback-photos')
+      .remove(fileNames);
+
+    if (storageError) {
+      console.error('Error deleting photos from storage:', storageError);
+      return { error: 'Failed to delete associated photos.' };
+    }
+  }
+  
+  // 2. Delete the feedback record from the database
+  const { error: dbError } = await supabase
+    .from('feedback')
+    .delete()
+    .eq('id', feedbackId);
+
+  if (dbError) {
+    console.error('Error deleting feedback from database:', dbError);
+    return { error: 'Failed to delete feedback record.' };
+  }
+  
+  // 3. Revalidate the path to refresh the data on the admin page
+  revalidatePath('/admin');
+  
+  return { error: null };
+}
 
 export async function exportToWord(feedback: Feedback[]) {
   const feedbackHtml = feedback.map(item => {
