@@ -238,7 +238,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
                    <Card className="overflow-hidden cursor-pointer group">
                       <CardContent className="p-0">
                         <Image
-                          src={item.photo_url_single!}
+                          src={item.photo_url_single}
                           alt={item.name ?? "Feedback photo"}
                           width={400}
                           height={400}
@@ -258,7 +258,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
                   </DialogHeader>
                   <div className="relative w-full aspect-video">
                     <Image
-                      src={item.photo_url_single!}
+                      src={item.photo_url_single}
                       alt={item.name ?? "Feedback photo"}
                       fill
                       className="object-contain"
@@ -275,3 +275,5 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     </div>
   );
 }
+
+    
