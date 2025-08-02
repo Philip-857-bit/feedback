@@ -48,7 +48,7 @@ const formSchema = z.object({
   name: z.string(),
   anonymous: z.boolean().default(false).optional(),
   email: z.string().email("Please enter a valid email address."),
-  rating: z.number().min(0).max(5).optional().default(0),
+  rating: z.number().min(0).max(5).optional(),
   feedback: z.string().min(10, {
     message: "Feedback must be at least 10 characters.",
   }),
@@ -397,3 +397,5 @@ export function FeedbackForm() {
     </Card>
   );
 }
+
+    
