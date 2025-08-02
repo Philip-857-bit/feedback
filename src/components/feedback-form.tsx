@@ -79,6 +79,7 @@ export function FeedbackForm() {
       email: "",
       rating: 0,
       feedback: "",
+      photo: undefined,
       consent: false,
     },
   });
@@ -397,5 +398,3 @@ export function FeedbackForm() {
     </Card>
   );
 }
-
-    
