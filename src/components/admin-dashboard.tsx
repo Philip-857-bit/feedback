@@ -57,17 +57,19 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
     const doc = new jsPDF();
     doc.text("Feedback Submissions", 20, 10);
     (doc as any).autoTable({
-      head: [["User", "Rating", "Feedback", "Consent", "Submitted"]],
+      head: [["User", "Rating", "Feedback", "Photo URL", "Consent", "Submitted"]],
       body: feedback.map(item => [
         `${item.is_anonymous ? "Anonymous" : item.name}\n${item.email}\n(${item.user_type})`,
         item.rating ? '⭐'.repeat(item.rating) : 'N/A',
         item.feedback,
+        item.photo_url || 'N/A',
         item.consent ? 'Yes' : 'No',
         formatDate(item.created_at)
       ]),
       styles: {
         cellPadding: 2,
         fontSize: 8,
+        overflow: 'linebreak',
       },
       headStyles: {
         fillColor: [28, 93, 57],
@@ -78,15 +80,16 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
         0: { cellWidth: 40 },
         1: { cellWidth: 20 },
         2: { cellWidth: 'auto' },
-        3: { cellWidth: 15 },
-        4: { cellWidth: 25 },
+        3: { cellWidth: 40 },
+        4: { cellWidth: 15 },
+        5: { cellWidth: 25 },
       },
     });
     doc.save("feedback-submissions.pdf");
   };
 
   const exportToCSV = () => {
-    const headers = ["ID", "Name", "Email", "User Type", "Rating", "Feedback", "Consent", "Anonymous", "Submitted At"];
+    const headers = ["ID", "Name", "Email", "User Type", "Rating", "Feedback", "Photo URL", "Consent", "Anonymous", "Submitted At"];
     const rows = feedback.map(item => [
       item.id,
       item.is_anonymous ? "Anonymous" : `"${item.name}"`,
@@ -94,6 +97,7 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
       item.user_type,
       item.rating ?? 'N/A',
       `"${item.feedback.replace(/"/g, '""')}"`,
+      item.photo_url || '',
       item.consent,
       item.is_anonymous,
       formatDate(item.created_at)

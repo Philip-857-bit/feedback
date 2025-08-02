@@ -36,8 +36,9 @@ export async function exportToWord(feedback: Feedback[]): Promise<string | null>
           <title>Feedback Submissions</title>
           <style>
             table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid black; padding: 8px; text-align: left; }
+            th, td { border: 1px solid black; padding: 8px; text-align: left; vertical-align: top; }
             th { background-color: #f2f2f2; }
+            img { max-width: 100px; max-height: 100px; }
           </style>
         </head>
         <body>
@@ -48,6 +49,7 @@ export async function exportToWord(feedback: Feedback[]): Promise<string | null>
                 <th>User</th>
                 <th>Rating</th>
                 <th>Feedback</th>
+                <th>Photo</th>
                 <th>Consent</th>
                 <th>Submitted</th>
               </tr>
@@ -64,6 +66,7 @@ export async function exportToWord(feedback: Feedback[]): Promise<string | null>
           </td>
           <td>${item.rating ? '⭐'.repeat(item.rating) : 'N/A'}</td>
           <td>${item.feedback}</td>
+          <td>${item.photo_url ? `<img src="${item.photo_url}" alt="Feedback photo">` : 'N/A'}</td>
           <td>${item.consent ? 'Yes' : 'No'}</td>
           <td>${formatDate(item.created_at)}</td>
         </tr>
