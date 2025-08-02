@@ -28,6 +28,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { StarRating } from "@/components/star-rating";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 import {
   User,
   Store,
@@ -61,10 +63,30 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+async function uploadPhoto(photo: File) {
+  const fileExt = photo.name.split(".").pop();
+  const fileName = `${Math.random()}.${fileExt}`;
+  const { data, error } = await supabase.storage
+    .from("feedback-photos")
+    .upload(fileName, photo);
+
+  if (error) {
+    console.error("Error uploading photo:", error);
+    return null;
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from("feedback-photos")
+    .getPublicUrl(data.path);
+
+  return publicUrl;
+}
+
 export function FeedbackForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [fileName, setFileName] = useState("");
+  const { toast } = useToast();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -84,10 +106,47 @@ export function FeedbackForm() {
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setIsSuccess(true);
+    let photoUrl: string | null = null;
+
+    try {
+      if (values.photo && values.photo.length > 0) {
+        photoUrl = await uploadPhoto(values.photo[0]);
+        if (!photoUrl) {
+           throw new Error("Photo upload failed.");
+        }
+      }
+
+      const { error } = await supabase.from("feedback").insert({
+        user_type: values.userType,
+        name: values.anonymous ? "Anonymous" : values.name,
+        is_anonymous: values.anonymous,
+        email: values.email,
+        rating: values.rating,
+        feedback: values.feedback,
+        photo_url: photoUrl,
+        consent: values.consent,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setIsSuccess(true);
+      toast({
+        title: "Success!",
+        description: "Your feedback has been submitted.",
+      });
+
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: error.message || "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   if (isSuccess) {
