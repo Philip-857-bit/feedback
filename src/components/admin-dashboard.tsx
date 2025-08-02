@@ -273,4 +273,3 @@ export function AdminDashboard({ feedback }: AdminDashboardProps) {
       </div>
     </div>
   );
-}
